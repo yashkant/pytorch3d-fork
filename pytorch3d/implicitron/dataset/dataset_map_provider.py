@@ -31,12 +31,13 @@ class DatasetMap:
     train: Optional[DatasetBase]
     val: Optional[DatasetBase]
     test: Optional[DatasetBase]
+    full: Optional[DatasetBase]
 
     def __getitem__(self, split: str) -> Optional[DatasetBase]:
         """
         Get one of the datasets by key (name of data split)
         """
-        if split not in ["train", "val", "test"]:
+        if split not in ["train", "val", "test", "full"]:
             raise ValueError(f"{split} was not a valid split name (train/val/test)")
         return getattr(self, split)
 

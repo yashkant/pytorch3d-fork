@@ -39,3 +39,4 @@ optimizer_factory_ImplicitronOptimizerFactory_args:
   - 300
 training_loop_ImplicitronTrainingLoop_args:
   max_epochs: 400
+  test_when_finished: true

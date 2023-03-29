@@ -236,11 +236,11 @@ class MultinomialRaysampler(torch.nn.Module):
             rays_idx = _safe_multinomial(weights, n_rays_per_image)[..., None].expand(
                 -1, -1, 2
             )
-
             xy_grid = torch.gather(xy_grid.reshape(batch_size, -1, 2), 1, rays_idx)[
                 :, :, None
             ]
-
+        # xy_grid contains points we wish to sample, based on the mask.
+        # ipdb> xy_grid.shape, torch.Size([1, 1024, 1, 2]), in NDC space
         min_depth = min_depth if min_depth is not None else self._min_depth
         max_depth = max_depth if max_depth is not None else self._max_depth
         n_pts_per_ray = (
@@ -646,6 +646,7 @@ def _xy_to_ray_bundle(
             rays_zs = _jiggle_within_stratas(rays_zs)
 
     # make two sets of points at a constant depth=1 and 2
+    # to_unproject.shape: torch.Size([1, 512 * 512 * 2, 3])
     to_unproject = torch.cat(
         (
             xy_grid.view(batch_size, 1, n_rays_per_image, 2)
@@ -658,11 +659,16 @@ def _xy_to_ray_bundle(
                 ),
                 dim=1,
             ),
-        ),
+        ), 
         dim=-1,
     )
 
-    # unproject the points
+    # breakpoint()
+    # import sys
+    # sys.path.append("/nfs/ykant/torch-ngp/nerf")
+    # from provider import visualize_poses
+
+    # unproject the points (double plane of points, z=1 and z=2), these rays are not parallel to camera frame, but with common origin. because NDC space is normalized in XY.
     unprojected = cameras.unproject_points(to_unproject, from_ndc=True)
 
     # split the two planes back
@@ -672,7 +678,7 @@ def _xy_to_ray_bundle(
     # directions are the differences between the two planes of points
     rays_directions_world = rays_plane_2_world - rays_plane_1_world
 
-    # origins are given by subtracting the ray directions from the first plane
+    # origins are given by subtracting the ray directions from the first plane (all same)
     rays_origins_world = rays_plane_1_world - rays_directions_world
 
     if unit_directions:

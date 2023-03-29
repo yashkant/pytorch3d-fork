@@ -1172,6 +1172,18 @@ class PerspectiveCameras(CamerasBase):
         xy_inv_depth = torch.cat(
             (xy_depth[..., :2], 1.0 / xy_depth[..., 2:3]), dim=-1  # type: ignore
         )
+        
+        # breakpoint()
+        # debug: xy-flip is missing
+        # ndc_to_screen = get_ndc_to_screen_transform(self, image_size=(512, 512))
+        # points_in_screen = ndc_to_screen.transform_points(xy_inv_depth)
+        # points_in_screen is (-0.5, -0.5) to (-511.5, -511.5)
+
+        # debug: get points in screen space 
+        # proj_to_view = self.get_projection_transform().inverse()
+        # points_in_view = proj_to_view.transform_points(xy_inv_depth)
+        # print(points_in_view)
+
         return unprojection_transform.transform_points(xy_inv_depth)
 
     def get_principal_point(self, **kwargs) -> torch.Tensor:

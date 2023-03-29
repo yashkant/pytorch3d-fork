@@ -10,7 +10,7 @@ from typing import Optional
 
 import torch.optim
 
-from accelerate import Accelerator
+# from accelerate import Accelerator
 from pytorch3d.implicitron.models.base_model import ImplicitronModelBase
 from pytorch3d.implicitron.tools import model_io
 from pytorch3d.implicitron.tools.config import (
@@ -71,7 +71,7 @@ class ImplicitronModelFactory(ModelFactoryBase):  # pyre-ignore [13]
     def __call__(
         self,
         exp_dir: str,
-        accelerator: Optional[Accelerator] = None,
+        accelerator = None,
     ) -> ImplicitronModelBase:
         """
         Returns an instance of `ImplicitronModelBase`, possibly loaded from a

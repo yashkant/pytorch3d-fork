@@ -88,10 +88,13 @@ def save_model(model, stats, fl, optimizer=None, cfg=None):
     logger.info("saving model to %s" % flmodel)
     torch.save(model.state_dict(), flmodel)
     flopt = None
-    if optimizer is not None:
-        flopt = get_optimizer_path(fl)
-        logger.info("saving optimizer to %s" % flopt)
-        torch.save(optimizer.state_dict(), flopt)
+    try:
+        if optimizer is not None:
+            flopt = get_optimizer_path(fl)
+            logger.info("saving optimizer to %s" % flopt)
+            torch.save(optimizer.state_dict(), flopt)
+    except:
+        print(f"failed to save optimizer")
     logger.info("saving model stats to %s" % flstats)
     stats.save(flstats)
 

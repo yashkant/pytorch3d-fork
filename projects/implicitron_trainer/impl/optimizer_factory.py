@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import torch.optim
 
-from accelerate import Accelerator
+# from accelerate import Accelerator
 
 from pytorch3d.implicitron.models.base_model import ImplicitronModelBase
 from pytorch3d.implicitron.tools import model_io
@@ -95,7 +95,7 @@ class ImplicitronOptimizerFactory(OptimizerFactoryBase):
         self,
         last_epoch: int,
         model: ImplicitronModelBase,
-        accelerator: Optional[Accelerator] = None,
+        accelerator = None,
         exp_dir: Optional[str] = None,
         resume: bool = True,
         resume_epoch: int = -1,
@@ -206,7 +206,7 @@ class ImplicitronOptimizerFactory(OptimizerFactoryBase):
     def _get_optimizer_state(
         self,
         exp_dir: Optional[str],
-        accelerator: Optional[Accelerator] = None,
+        accelerator = None,
         resume: bool = True,
         resume_epoch: int = -1,
     ) -> Optional[Dict[str, Any]]:

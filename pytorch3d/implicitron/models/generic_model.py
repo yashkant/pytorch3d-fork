@@ -357,6 +357,9 @@ class GenericModel(ImplicitronModelBase):  # pyre-ignore: 13
             preds: A dictionary containing all outputs of the forward pass including the
                 rendered images, depths, masks, losses and other metrics.
         """
+        # remove fg mask
+        fg_probability = None
+
         image_rgb, fg_probability, depth_map = self._preprocess_input(
             image_rgb, fg_probability, depth_map
         )
@@ -383,13 +386,14 @@ class GenericModel(ImplicitronModelBase):  # pyre-ignore: 13
         # Select the target cameras.
         target_cameras = camera[list(range(n_targets))]
 
-        # Determine the used ray sampling mode.
+        # Determine the used ray sampling mode. (mask)
         sampling_mode = RenderSamplingMode(
             self.sampling_mode_training
             if evaluation_mode == EvaluationMode.TRAINING
             else self.sampling_mode_evaluation
         )
 
+        # breakpoint()
         # (1) Sample rendering rays with the ray sampler.
         # pyre-ignore[29]
         ray_bundle: ImplicitronRayBundle = self.raysampler(
@@ -450,6 +454,7 @@ class GenericModel(ImplicitronModelBase):  # pyre-ignore: 13
             )
             chunked_renderer_inputs["object_mask"] = sampled_fb_prob > 0.5
 
+        breakpoint()
         # (5)-(6) Implicit function evaluation and Rendering
         rendered = self._render(
             ray_bundle=ray_bundle,
@@ -904,3 +909,11 @@ def _chunk_generator(
         for k, v in chunked_inputs.items():
             extra_args[k] = v.flatten(2)[:, :, start_idx:end_idx]
         yield [ray_bundle_chunk, *args], extra_args
+"""
+        # save images with PIL for debugging
+        # from PIL import Image
+        # import numpy as np
+        # Image.fromarray(np.uint8(image_rgb[0].permute(1,2,0).cpu().numpy()*255)).save('image_rgb.png')
+        # Image.fromarray(np.uint8(fg_probability[0].repeat(3,1,1).permute(1,2,0).cpu().numpy()*255)).convert("L").save('fg_probability.png')
+        # Image.fromarray(np.uint8((depth_map[0] / depth_map[0].max()).repeat(3,1,1).permute(1,2,0).cpu().numpy()*255)).convert("L").save('depth_map.png')
+"""

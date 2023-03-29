@@ -200,6 +200,8 @@ def main(cfg: DictConfig):
             if iteration % cfg.stats_print_interval == 0:
                 stats.print(stat_set="train")
 
+            breakpoint()
+
             # Update the visualization cache.
             if viz is not None:
                 visuals_cache.append(
@@ -219,7 +221,7 @@ def main(cfg: DictConfig):
 
         # Validation
         if epoch % cfg.validation_epoch_interval == 0 and epoch > 0:
-
+            breakpoint()
             # Sample a validation camera/image.
             val_batch = next(val_dataloader.__iter__())
             val_image, val_camera, camera_idx = val_batch[0].values()

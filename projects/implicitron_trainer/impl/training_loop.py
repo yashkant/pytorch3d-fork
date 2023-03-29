@@ -10,7 +10,7 @@ import time
 from typing import Any, List, Optional
 
 import torch
-from accelerate import Accelerator
+# from accelerate import Accelerator
 from pytorch3d.implicitron.evaluation.evaluator import EvaluatorBase
 from pytorch3d.implicitron.models.base_model import ImplicitronModelBase
 from pytorch3d.implicitron.models.generic_model import EvaluationMode
@@ -121,7 +121,7 @@ class ImplicitronTrainingLoop(TrainingLoopBase):
         model: ImplicitronModelBase,
         optimizer: torch.optim.Optimizer,
         scheduler: Any,
-        accelerator: Optional[Accelerator],
+        accelerator,
         device: torch.device,
         exp_dir: str,
         stats: Stats,
@@ -311,7 +311,7 @@ class ImplicitronTrainingLoop(TrainingLoopBase):
         stats: Stats,
         validation: bool,
         *,
-        accelerator: Optional[Accelerator],
+        accelerator = None,
         bp_var: str = "objective",
         device: torch.device,
         **kwargs,
@@ -356,8 +356,9 @@ class ImplicitronTrainingLoop(TrainingLoopBase):
             last_iter = it == n_batches - 1
 
             # move to gpu where possible (in place)
+            # <class 'pytorch3d.implicitron.dataset.dataset_base.FrameData'>
             net_input = net_input.to(device)
-
+            
             # run the forward pass
             if not validation:
                 optimizer.zero_grad()
@@ -424,7 +425,7 @@ class ImplicitronTrainingLoop(TrainingLoopBase):
 
     def _checkpoint(
         self,
-        accelerator: Optional[Accelerator],
+        accelerator,
         epoch: int,
         exp_dir: str,
         model: ImplicitronModelBase,

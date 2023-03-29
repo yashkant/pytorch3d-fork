@@ -162,6 +162,7 @@ class JsonIndexDataset(DatasetBase, ReplaceableBase):
     sort_frames: bool = False
     eval_batches: Any = None
     eval_batch_index: Any = None
+    min_side: int = 0
     # frame_annots: List[FrameAnnotsEntry] = field(init=False)
     # seq_annots: Dict[str, types.SequenceAnnotation] = field(init=False)
 
@@ -243,6 +244,7 @@ class JsonIndexDataset(DatasetBase, ReplaceableBase):
             or len(self.exclude_sequence) > 0
             or len(self.limit_category_to) > 0
             or self.n_frames_per_sequence > 0
+            or self.min_side > 0  #(YK): needed. 
         )
 
     def seq_frame_index_to_dataset_index(
@@ -527,6 +529,7 @@ class JsonIndexDataset(DatasetBase, ReplaceableBase):
                         bbox_xywh,
                         image_path=entry.image.path,
                         box_crop_context=self.box_crop_context,
+                        image_hw=tuple(mask.shape[-2:]),
                     ),
                     image_size_hw=tuple(mask.shape[-2:]),
                 )
@@ -615,6 +618,7 @@ class JsonIndexDataset(DatasetBase, ReplaceableBase):
         scale: float,
         clamp_bbox_xyxy: Optional[torch.Tensor],
     ) -> PerspectiveCameras:
+        
         entry_viewpoint = entry.viewpoint
         assert entry_viewpoint is not None
         # principal point and focal length
@@ -802,7 +806,16 @@ class JsonIndexDataset(DatasetBase, ReplaceableBase):
             if f["frame_annotation"].sequence_name in self.seq_annots
         ]
 
-        self._invalidate_indexes()
+        # (YK): filter sequences based on image size
+        if self.min_side > 0:
+            old_len = len(self.frame_annots)
+            self.frame_annots = [
+                f
+                for f in self.frame_annots
+                if min(f["frame_annotation"].image.size) >= self.min_side
+            ]
+            print("[co3d] filtered images using min side %d, len changed from %d -> %d" % (self.min_side, old_len, len(self.frame_annots)))
+        self._invalidate_indexes(filter_seq_annots=True)
 
         if self.n_frames_per_sequence > 0:
             logger.info(f"Taking max {self.n_frames_per_sequence} per sequence.")
@@ -995,6 +1008,8 @@ def _get_clamp_bbox(
     bbox: torch.Tensor,
     box_crop_context: float = 0.0,
     image_path: str = "",
+    image_hw=None,
+    box_adjust=True
 ) -> torch.Tensor:
     # box_crop_context: rate of expansion for bbox
     # returns possibly expanded bbox xyxy as float
@@ -1016,6 +1031,24 @@ def _get_clamp_bbox(
         )
 
     bbox[2:] = torch.clamp(bbox[2:], 2)  # set min height, width to 2 along both axes
+
+    if box_adjust:
+        # make the box square using max side of xywh, and keeping center same
+        bbox_center = bbox[:2] + bbox[2:] / 2
+        bbox_center = bbox_center.round()
+        bbox_side = max(bbox[2:])
+        
+        # make sure bbox is within image bounds (left bottom corner)
+        bbox[:2] = torch.clamp(bbox_center - bbox_side / 2, 0)
+        bbox[2:] = bbox_side
+        # make sure bbox is within image bounds (right top corner)
+        bbox_rt_corner = bbox[:2] + bbox[2:]
+        if bbox_rt_corner[0] > image_hw[1]:
+            bbox[0] -= bbox_rt_corner[0] - image_hw[1]
+        if bbox_rt_corner[1] > image_hw[0]:
+            bbox[1] -= bbox_rt_corner[1] - image_hw[0]
+        bbox[:2] = torch.clamp(bbox[:2], 0)
+
     bbox_xyxy = _bbox_xywh_to_xyxy(bbox, clamp_size=2)
 
     return bbox_xyxy

@@ -3,6 +3,28 @@ data_source_ImplicitronDataSource_args:
   dataset_map_provider_JsonIndexDatasetMapProviderV2_args:
     category: teddybear
     subset_name: manyview_dev_0
+
+    # align with inpaintldm 
+    dataset_JsonIndexDataset_args:
+      image_height: 512
+      image_width: 512
+      box_crop: true
+      box_crop_mask_thr: 0.4
+      box_crop_context: 0.3
+      remove_empty_masks: false
+      mask_images: false
+      mask_depths: false
+      min_side: 512
+
 training_loop_ImplicitronTrainingLoop_args:
   evaluator_ImplicitronEvaluator_args:
     is_multisequence: false
+
+model_factory_ImplicitronModelFactory_args:
+  model_GenericModel_args:
+    render_image_height: 512
+    render_image_width: 512
+
+    # raysampler_NearFarRaySampler_args:
+    #   min_depth: 0.1
+    #   max_depth: 8.0

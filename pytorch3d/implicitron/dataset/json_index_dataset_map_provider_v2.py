@@ -1,4 +1,4 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
+ # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-style license found in the
@@ -339,7 +339,8 @@ class JsonIndexDatasetMapProviderV2(DatasetMapProviderBase):  # pyre-ignore [13]
                     )
                 logger.info(f"# eval batches: {len(test_dataset.eval_batches)}")
 
-        return DatasetMap(train=train_dataset, val=val_dataset, test=test_dataset)
+        #(YK): edited to capture all frames of any sequence.
+        return DatasetMap(train=train_dataset, val=val_dataset, test=test_dataset, full=dataset)
 
     @classmethod
     def dataset_tweak_args(cls, type, args: DictConfig) -> None:

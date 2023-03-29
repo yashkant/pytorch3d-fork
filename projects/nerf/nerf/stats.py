@@ -334,10 +334,10 @@ class Stats:
                 plt.legend(tmodes)
                 gcolor = np.array(mcolors.to_rgba("lightgray"))
                 plt.grid(
-                    b=True, which="major", color=gcolor, linestyle="-", linewidth=0.4
+                    which="major", color=gcolor, linestyle="-", linewidth=0.4
                 )
                 plt.grid(
-                    b=True, which="minor", color=gcolor, linestyle="--", linewidth=0.2
+                    which="minor", color=gcolor, linestyle="--", linewidth=0.2
                 )
                 plt.minorticks_on()
 

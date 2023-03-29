@@ -51,7 +51,6 @@ from dataclasses import field
 import hydra
 
 import torch
-from accelerate import Accelerator
 from omegaconf import DictConfig, OmegaConf
 from packaging import version
 
@@ -94,7 +93,14 @@ try:
 except ModuleNotFoundError:
     pass
 
-no_accelerate = os.environ.get("PYTORCH3D_NO_ACCELERATE") is not None
+no_accelerate = True
+if no_accelerate:
+    warnings.warn(
+        "Accelerate is not available. Training will be slow. "
+        "To install accelerate, run `pip install accelerate`."
+    )
+else:
+    from accelerate import Accelerator
 
 
 class Experiment(Configurable):  # pyre-ignore: 13
@@ -164,6 +170,9 @@ class Experiment(Configurable):  # pyre-ignore: 13
             logger.info("Anomaly detection!")
         torch.autograd.set_detect_anomaly(self.detect_anomaly)
 
+        """
+        ipdb> self.data_source is ImplicitronDataSource
+        """
         # Initialize the datasets and dataloaders.
         datasets, dataloaders = self.data_source.get_datasets_and_dataloaders()
 
@@ -263,6 +272,7 @@ def dump_cfg(cfg: DictConfig) -> None:
     try:
         cfg_filename = os.path.join(cfg.exp_dir, "expconfig.yaml")
         OmegaConf.save(config=cfg, f=cfg_filename)
+        print(f"Config saved to {cfg_filename}")
     except PermissionError:
         warnings.warn("Can't dump config due to insufficient permissions!")
 
@@ -275,7 +285,6 @@ cs.store(name="default_config", node=Experiment)
 @hydra.main(config_path="./configs/", config_name="default_config")
 def experiment(cfg: DictConfig) -> None:
     # CUDA_VISIBLE_DEVICES must have been set.
-
     if "CUDA_DEVICE_ORDER" not in os.environ:
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 

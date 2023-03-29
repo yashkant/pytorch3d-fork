@@ -1,0 +1,46 @@
+dataset_args=data_source_ImplicitronDataSource_args.dataset_map_provider_JsonIndexDatasetMapProvider_args
+python -m implicitron_trainer.experiment --config-path ./configs/ --config-name repro_singleseq_v2_nerf \
+    $dataset_args.dataset_root='/nfs/ykant/co3d/download_again' $dataset_args.category='skateboard' \
+    $dataset_args.test_restrict_sequence_id=0 exp_dir="./exps/checkpoint_dir"
+
+setps:
+
+input:
+- rgb image
+- fg_probability image
+- depth image
+
+process:
+- discretize fg_mask
+- apply mask to rgb
+- match rays in co3d and instant-ngp (might require some camera conversion)
+- match renderings in co3d and instant-ngp
+    - co3d takes, 1024 rays with 64 samples per ray, and generates rgb 
+
+
+
+co3d nerf:
+- uses 800x800 images, replace with 512x512, and stop mask. (done)
+- apply mask_crop to image and to ray sampler
+- raysamplers with mask
+    - adaptive: puts rays in a sphere      
+        scene_extent: float = 8.0
+        scene_center: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+        min_depth = center_dist(cam) - scene_extent
+        max_depth = center_dist(cam) + scene_extent
+    - nearfar: puts rays in a box
+        min_depth: float = 0.1
+        max_depth: float = 8.0
+    - creates rays in NDC space [-1, 1] x [-1, 1] x [min_depth, max_depth]
+    - uses stratified sampling (jiggling ray sampling bin centers)
+- use 1024 rays with 64 samples per ray
+- rendering and visuals
+
+
+instant-ngp:
+- nerf is here [/nfs/ykant/pytorch3d/pytorch3d/implicitron/models/implicit_function/neural_radiance_field.py]
+- metrics are _calculate_stage
+- raymaracher.py implements rendering. 
+
+aws:
+- compress and move. 

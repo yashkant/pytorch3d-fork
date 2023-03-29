@@ -19,3 +19,14 @@ website/_tutorials/
 website/static/files/
 website/pages/tutorials/*
 !website/pages/tutorials/index.js
+
+## YK's custom
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.so
+projects/exps/*
+*.log

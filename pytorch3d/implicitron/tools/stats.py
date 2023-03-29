@@ -408,12 +408,11 @@ class Stats(object):
                 plt.gca().yaxis.label.set_color(c[0:3] * 0.75)
                 plt.legend(tmodes)
                 gcolor = np.array(mcolors.to_rgba("lightgray"))
-                plt.grid(
-                    b=True, which="major", color=gcolor, linestyle="-", linewidth=0.4
-                )
-                plt.grid(
-                    b=True, which="minor", color=gcolor, linestyle="--", linewidth=0.2
-                )
+                try:
+                    plt.grid(which="major", color=gcolor, linestyle="-", linewidth=0.4)
+                    plt.grid(which="minor", color=gcolor, linestyle="--", linewidth=0.2)
+                except:
+                    breakpoint()
                 plt.minorticks_on()
 
             plt.tight_layout()
